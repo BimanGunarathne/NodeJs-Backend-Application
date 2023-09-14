@@ -70,6 +70,18 @@ app.get("/users/:id/weather/:date", async (req, res) => {
   }
 });
 
+cron.schedule("0 * * * *", async () => {
+  try {
+    const users = await User.find();
+    for (const user of users) {
+      const weatherData = await getWeather(user.location);
+      sendWeatherReport(user.email, weatherData);
+    }
+  } catch (error) {
+    console.error("Error sending hourly weather reports:", error);
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
